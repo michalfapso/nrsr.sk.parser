@@ -5,7 +5,7 @@ use HTML::TreeBuilder;
 #use String::Diff;
 #use Encode;
 use Data::Dumper;
-$Data::Dumper::Maxdepth = 2;
+$Data::Dumper::Maxdepth = 3;
 
 #binmode STDOUT, ":utf8";
 #binmode STDIN, ":utf8";
@@ -42,6 +42,7 @@ system("./stiahni_parlamentne_tlace.sh '$OUT_DIR/$PARLAMENTNE_TLACE_URL_FILENAME
 system("./stiahni_hlasovania.sh '$OUT_DIR/$HLASOVANIA_URL_FILENAME' '$OUT_DIR/$HLASOVANIA_DIR'");
 
 hlasovania_to_recs(\@recs);
+parlamentne_tlace_to_recs(\@recs);
 recs_to_html(\@recs, "schodza_$CISLO_SCHODZE.html");
 
 
@@ -55,12 +56,12 @@ sub uloz_zoznam_url_parlamentnych_tlaci()
 
 	open(OUT, ">$filename_out") or die("ERROR: Can not open file '$filename_out' for writing!");
 	my $cislo_parlamentnej_tlace_pred = -1;
-	foreach my $rec (sort {$a->{cislo_parlamentnej_tlace} <=> $b->{cislo_parlamentnej_tlace}} @$recs) {
-		if ($cislo_parlamentnej_tlace_pred != $rec->{cislo_parlamentnej_tlace} && $rec->{cislo_parlamentnej_tlace} ne "") {
-			$cislo_parlamentnej_tlace_pred =  $rec->{cislo_parlamentnej_tlace};
-			#print OUT "$rec->{cislo_parlamentnej_tlace} $rec->{parlamentna_tlac_url}\n";
+	foreach my $rec (sort {$a->{parlamentna_tlac}->{cislo} <=> $b->{parlamentna_tlac}->{cislo}} @$recs) {
+		if ($cislo_parlamentnej_tlace_pred != $rec->{parlamentna_tlac}->{cislo} && $rec->{parlamentna_tlac}->{cislo} ne "") {
+			$cislo_parlamentnej_tlace_pred =  $rec->{parlamentna_tlac}->{cislo};
+			#print OUT "$rec->{parlamentna_tlac}->{cislo} $rec->{parlamentna_tlac_url}\n";
 			print OUT "$rec->{parlamentna_tlac_url}\n";
-			#print OUT "  out=$rec->{cislo_parlamentnej_tlace}/main.htm\n";
+			#print OUT "  out=$rec->{parlamentna_tlac}->{cislo}/main.htm\n";
 		}
 	}
 	close(OUT);
@@ -113,11 +114,12 @@ sub recs_to_html()
 	my $tr_class = "tab_zoznam_alt";
 	my $cislo_parlamentnej_tlace_pred = -1;
 	my $nazov_pred = "";
-	foreach my $rec (sort {$a->{cislo_parlamentnej_tlace} <=> $b->{cislo_parlamentnej_tlace}} @$recs) {
+	foreach my $rec (sort { $a->{parlamentna_tlac}->{cislo} <=> $b->{parlamentna_tlac}->{cislo} } @$recs) 
+	{
 #		my $je_nova_tlac = 0;
-		my $je_nova_tlac = $rec->{cislo_parlamentnej_tlace} eq "";
-		if ($cislo_parlamentnej_tlace_pred != $rec->{cislo_parlamentnej_tlace}) {
-			$cislo_parlamentnej_tlace_pred =  $rec->{cislo_parlamentnej_tlace};
+		my $je_nova_tlac = $rec->{parlamentna_tlac}->{cislo} eq "";
+		if ($cislo_parlamentnej_tlace_pred != $rec->{parlamentna_tlac}->{cislo}) {
+			$cislo_parlamentnej_tlace_pred =  $rec->{parlamentna_tlac}->{cislo};
 			$nazov_pred = $rec->{nazov};
 			$je_nova_tlac = 1;
 			print "<tr class='tab_zoznam_separator'><td colspan='5'></td></tr>";
@@ -126,28 +128,13 @@ sub recs_to_html()
 		print "<tr class='$tr_class'>\n";
 		print "  <td>$rec->{datum}<br/>$rec->{cas}</td>\n";
 		if ($je_nova_tlac) {
-			print "  <td><a href='$rec->{parlamentna_tlac_url}'>$rec->{cislo_parlamentnej_tlace}</a></td>\n";
+			print "  <td><a href='$rec->{parlamentna_tlac_url}'>$rec->{parlamentna_tlac}->{cislo}</a></td>\n";
 			print "  <td>$rec->{meno}</td>\n";
 			print "  <td>\n";
-			if ($rec->{cislo_parlamentnej_tlace} ne "" && $rec->{parlamentna_tlac_url} ne "") {
-				my @document_files = ();
-				my $fileslist_filename = "$OUT_DIR/$PARLAMENTNE_TLACE_DIR/$rec->{cislo_parlamentnej_tlace}/list.txt";
-				if (! -e $fileslist_filename) {
-					print STDERR "Missing print #$rec->{cislo_parlamentnej_tlace} ...downloading\n";
-					if (system("./stiahni_parlamentnu_tlac.pl '$rec->{parlamentna_tlac_url}' '$OUT_DIR/$PARLAMENTNE_TLACE_DIR'") != 0) {
-						die("ERROR: Chyba pri stahovani parlamentnej tlace '$rec->{parlamentna_tlac_url}'");
-					}
-				}
-				open(FILESLIST, $fileslist_filename) or die("ERROR: Can not open file '$fileslist_filename'\n");
-				@document_files = <FILESLIST>;
-				close(FILESLIST);
-				#print Dumper(@document_files);
-				foreach my $line (@document_files) {
-					(my $filetype, my $filename, my $title) = $line =~ /^([^\s]+)\s+([^\s]+)\s+(.*)/;
-					if ($filename !~ /^http/) {
-						$filename = "$PARLAMENTNE_TLACE_DIR/$rec->{cislo_parlamentnej_tlace}/".basename($filename);
-					}
-					print "    <img src='http://www.nrsr.sk/web/img/$filetype.gif'/> <a href='$filename'>$title</a><br/>\n";
+			if (defined $rec->{parlamentna_tlac}->{dokumenty}) {
+				my $dokumenty_ref = $rec->{parlamentna_tlac}->{dokumenty};
+				foreach my $dokument (@$dokumenty_ref) {
+					print "    <img src='http://www.nrsr.sk/web/img/$dokument->{typ}.gif'/> <a href='$dokument->{url}'>$dokument->{nazov}</a><br/>\n";
 				}
 			}
 			print "  </td>\n";
@@ -159,9 +146,8 @@ sub recs_to_html()
 			#print "  <td>$rec->{nazov}</td>\n";
 			#my $diff = my_diff(decode_utf8($nazov_pred), decode_utf8($rec->{nazov}), "diff_add");
 			my $diff = my_diff($nazov_pred, $rec->{nazov});
-#			if ($rec->{cislo_parlamentnej_tlace} eq "") { $nazov_pred = $rec->{nazov}; }
+#			if ($rec->{parlamentna_tlac}->{cislo} eq "") { $nazov_pred = $rec->{nazov}; }
 			print "  <td>$diff</td>\n";
-#			exit;
 		}
 		my $td_class = 
 			($rec->{hlasovanie_vysledok} eq "Návrh prešiel") ? "class='hlasovanie_navrh_presiel'" :
@@ -241,6 +227,8 @@ sub rows2recs()
 	my $rows_in = shift;
 	my $recs_out = shift;
 	#my $row = $rows_in[12];
+	my %tlace = ();
+	$tlace{""}{cislo} = "";
 	foreach my $row (@$rows_in) {
 #	print "row: ".$row->content_list()->as_HTML()."\n";
 		my @cells = $row->content_list();
@@ -264,9 +252,22 @@ sub rows2recs()
 
 		# cislo parlamentnej tlace
 		my @a = $cells[2]->content_list();
-		$rec{parlamentna_tlac_url} = "http://www.nrsr.sk/web/".$a[0]->attr("href");
-		$rec{cislo_parlamentnej_tlace} = $a[0]->as_text();
-		$rec{cislo_parlamentnej_tlace} =~ s/\s+//g;
+		(my $cislo_parlamentnej_tlace) = $a[0]->as_text() =~ /(\d+)/;
+#		if ($cislo_parlamentnej_tlace ne "") { 
+			my $tlac;
+			if (exists $tlace{$cislo_parlamentnej_tlace}) {
+				$tlac = \%{$tlace{$cislo_parlamentnej_tlace}};
+			} else {
+				%$tlac = ();
+				%{$tlace{$cislo_parlamentnej_tlace}} = ();
+				$tlac = \%{$tlace{$cislo_parlamentnej_tlace}};
+				$tlac->{url} = $a[0]->attr("href");
+				$tlac->{url} = "http://www.nrsr.sk/web/".$tlac->{url} if ($tlac->{url} ne "");
+				$tlac->{cislo} = $a[0]->as_text();
+				$tlac->{cislo} =~ s/\s+//g;
+			}
+			$rec{parlamentna_tlac} = $tlac;
+#		}
 
 		# nazov
 		$rec{nazov} = $cells[3]->as_text();
@@ -280,9 +281,7 @@ sub rows2recs()
 		}
 		
 		%{$recs_out->[scalar(@$recs_out)]} = %rec;
-#		print Dumper(%rec);
-#		exit;
-#	$row->content()
+#		$row->content()
 	}
 }
 
@@ -305,6 +304,41 @@ sub hlasovania_to_recs() {
 	}
 }
 
+sub parlamentne_tlace_to_recs() {
+	my $recs = shift;
+
+	foreach my $rec (@$recs) {
+		print Dumper($rec);
+
+		if ($rec->{parlamentna_tlac}->{cislo} eq "") { next; }
+		if (defined $rec->{parlamentna_tlac}->{dokumenty}) { next; }
+		
+		my $fileslist_filename = "$OUT_DIR/$PARLAMENTNE_TLACE_DIR/$rec->{parlamentna_tlac}->{cislo}/list.txt";
+		if (! -e $fileslist_filename) {
+			print STDERR "Nie je stiahnuta parlamentna tlac #$rec->{parlamentna_tlac}->{cislo}\n";
+			next;
+		}
+		open(FILESLIST, $fileslist_filename) or die("ERROR: Can not open file '$fileslist_filename'\n");
+		my @fileslist = <FILESLIST>;
+		close(FILESLIST);
+		my @dokumenty = ();
+		my $tlac = \%{$rec->{parlamentna_tlac}};
+		foreach my $line (@fileslist) {
+			(my $filetype, my $url, my $title) = $line =~ /^([^\s]+)\s+([^\s]+)\s+(.*)/;
+			if ($url !~ /^http/) {
+				$url = "$PARLAMENTNE_TLACE_DIR/$rec->{parlamentna_tlac}->{cislo}/".basename($url);
+			}
+			my %dokument = ();
+			$dokument{typ} = $filetype;
+			$dokument{url} = $url;
+			$dokument{nazov} = $title;
+			push @dokumenty, \%dokument;
+#			print "    <img src='http://www.nrsr.sk/web/img/$filetype.gif'/> <a href='$filename'>$title</a><br/>\n";
+		}
+		$rec->{parlamentna_tlac}->{dokumenty} = \@dokumenty;
+	}
+}
+
 sub parse_nazov_hlasovania() {
 	my $str = shift;
 	my $rec_out = shift; # reference to hash
@@ -312,7 +346,6 @@ sub parse_nazov_hlasovania() {
 	if ((my $meno) = $str =~ /^Návrh poslanc.{1,2} Národnej rady Slovenskej republiky (.+) na vydanie zákona/) {
 #		print "meno: $meno\n";
 		$rec_out->{meno} = $meno;
-#		exit;
 	}
 }
 
