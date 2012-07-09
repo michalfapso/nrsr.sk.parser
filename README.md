@@ -30,5 +30,5 @@ Skripty generujú html a xml subory:
 Okrem toho sťahujú hlasovania a RTF dokumenty parlamentných tlačí, ktoré konvertujú do HTML formátu pre rýchlejšie prezeranie.
 
 Priklad výstupu si môžete pozrieť tu:
-	http://www.fit.vutbr.cz/~ifapso/nrsr.sk.parser/out/schodza_3.html
-	http://www.fit.vutbr.cz/~ifapso/nrsr.sk.parser/out/schodza_3.xml
+* http://www.fit.vutbr.cz/~ifapso/nrsr.sk.parser/out/schodza_3.html
+* http://www.fit.vutbr.cz/~ifapso/nrsr.sk.parser/out/schodza_3.xml
