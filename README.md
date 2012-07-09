@@ -24,8 +24,8 @@ Výstup
 ======
 
 Skripty generujú html a xml subory:
-	schodza_CISLO.html
-	schodza_CISLO.xml
+* schodza_CISLO.html
+* schodza_CISLO.xml
 
 Okrem toho sťahujú hlasovania a RTF dokumenty parlamentných tlačí, ktoré konvertujú do HTML formátu pre rýchlejšie prezeranie.
 
