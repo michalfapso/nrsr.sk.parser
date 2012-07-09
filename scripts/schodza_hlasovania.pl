@@ -159,9 +159,11 @@ sub recs_to_html()
 		} else {
 			print "    <a href='$rec->{hlasovanie_podla_klubov_url}'>$rec->{cislo_hlasovania}</a>\n";
 			if ($rec->{hlasovanie_vysledok} ne "") {
+				print "    (\n";
 				print "    <span class='hlasovanie_za'>$rec->{hlasovanie_za}</span>\n";
 				print "    <span class='hlasovanie_proti'>$rec->{hlasovanie_proti}</span>\n";
 				print "    <span class='hlasovanie_zdrzalo_sa'>$rec->{hlasovanie_zdrzalo_sa}</span>\n";
+				print "    )\n";
 				print "    <span class='hlasovanie_vysledok'>$rec->{hlasovanie_vysledok}</span>\n";
 			}
 		}
@@ -386,7 +388,7 @@ sub parlamentne_tlace_to_recs() {
 		my @dokumenty = ();
 		my $tlac = \%{$rec->{parlamentna_tlac}};
 		foreach my $line (@fileslist) {
-			(my $filetype, my $url, my $title) = $line =~ /^([^\s]+)\s+([^\s]+)\s+(.*)/;
+			(my $filetype, my $url, my $title) = split(/\t/, $line);
 			if ($url !~ /^http/) {
 				$url = "$PARLAMENTNE_TLACE_DIR/$rec->{parlamentna_tlac}->{cislo}/".basename($url);
 			}

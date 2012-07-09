@@ -61,7 +61,7 @@ foreach my $e (@b) {
 				$file_url = rtf_to_html($output_filename);
 				($filetype) = $file_url =~ /([^\.]+)$/;
 			}
-			$fileslist_contents .= "$filetype $file_url $name\n";
+			$fileslist_contents .= "$filetype\t$file_url\t$name\n";
 		}
 #		print "e: ".$e->as_HTML()."\n";
 	}
