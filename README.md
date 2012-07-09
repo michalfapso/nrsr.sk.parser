@@ -19,3 +19,16 @@ Použitie
 	cd scripts
 	mkdir ../out
 	./schodza_hlasovania.pl 3 ../out
+
+Výstup
+======
+
+Skripty generujú html a xml subory:
+	schodza_CISLO.html
+	schodza_CISLO.xml
+
+Okrem toho sťahujú hlasovania a RTF dokumenty parlamentných tlačí, ktoré konvertujú do HTML formátu pre rýchlejšie prezeranie.
+
+Priklad výstupu si môžete pozrieť tu:
+	http://www.fit.vutbr.cz/~ifapso/nrsr.sk.parser/out/schodza_3.html
+	http://www.fit.vutbr.cz/~ifapso/nrsr.sk.parser/out/schodza_3.xml
