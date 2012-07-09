@@ -44,6 +44,7 @@ system("./stiahni_hlasovania.sh '$OUT_DIR/$HLASOVANIA_URL_FILENAME' '$OUT_DIR/$H
 hlasovania_to_recs(\@recs);
 parlamentne_tlace_to_recs(\@recs);
 recs_to_html(\@recs, "schodza_$CISLO_SCHODZE.html");
+recs_to_xml(\@recs, "schodza_$CISLO_SCHODZE.xml");
 
 
 #--------------------------------------------------
@@ -60,7 +61,7 @@ sub uloz_zoznam_url_parlamentnych_tlaci()
 		if ($cislo_parlamentnej_tlace_pred != $rec->{parlamentna_tlac}->{cislo} && $rec->{parlamentna_tlac}->{cislo} ne "") {
 			$cislo_parlamentnej_tlace_pred =  $rec->{parlamentna_tlac}->{cislo};
 			#print OUT "$rec->{parlamentna_tlac}->{cislo} $rec->{parlamentna_tlac_url}\n";
-			print OUT "$rec->{parlamentna_tlac_url}\n";
+			print OUT "$rec->{parlamentna_tlac}->{url}\n";
 			#print OUT "  out=$rec->{parlamentna_tlac}->{cislo}/main.htm\n";
 		}
 	}
@@ -151,7 +152,7 @@ sub recs_to_html()
 		}
 		my $td_class = 
 			($rec->{hlasovanie_vysledok} eq "Návrh prešiel") ? "class='hlasovanie_navrh_presiel'" :
-			($rec->{hlasovanie_vysledok} eq "Návrh neprešiel") ? "class='hlasovanie_navrh_nepresiel'" : "class='blabla'";
+			($rec->{hlasovanie_vysledok} eq "Návrh neprešiel") ? "class='hlasovanie_navrh_nepresiel'" : "";
 		print "  <td $td_class>\n";
 		if ($rec->{hlasovanie_podla_klubov_url} eq "") {
 			print "    tajné hlasovanie\n";
@@ -168,6 +169,67 @@ sub recs_to_html()
 		print "</tr>\n";
 	}
 	print "</table></body></html>\n";
+
+	close(STDOUT);
+}
+
+sub recs_to_xml() 
+{
+	my $recs = shift;
+	my $out_filename = shift;
+
+	local *STDOUT;
+ 	open(STDOUT, ">$OUT_DIR/$out_filename") or die("ERROR: Can not open file '$OUT_DIR/$out_filename' for writing!");
+ 
+ 	print "<?xml version='1.0' encoding='UTF-8' ?>\n";
+	print "<parlamentne_tlace>\n";
+	my %parlamentne_tlace = ();
+	foreach my $rec (@$recs) {
+		$parlamentne_tlace{$rec->{parlamentna_tlac}->{cislo}} = $rec->{parlamentna_tlac};
+	}
+	while (my ($cislo_tlace, $tlac) = each(%parlamentne_tlace)) {
+		if ($cislo_tlace eq "") { next; }
+		print "  <tlac cislo='$cislo_tlace'>\n";
+		print "    <url>$tlac->{url}</url>\n";
+		print "    <dokumenty>\n";
+		my $dokumenty_ref = $tlac->{dokumenty};
+		foreach my $dokument (@$dokumenty_ref) {
+			print "      <dokument>\n";
+			print "        <typ>$dokument->{typ}</typ>\n";
+			print "        <url>$dokument->{url}</url>\n";
+			print "        <nazov>$dokument->{nazov}</nazov>\n";
+			print "      </dokument>\n";
+		}
+		print "    </dokumenty>\n";
+		print "  </tlac>\n";
+	}
+	print "</parlamentne_tlace>\n";
+	print "\n";
+	print "<schodze>\n";
+	print "  <schodza cislo='$CISLO_SCHODZE'>\n";
+	print "    <hlasovania>\n";
+
+	foreach my $rec (sort { $a->{parlamentna_tlac}->{cislo} <=> $b->{parlamentna_tlac}->{cislo} } @$recs) 
+	{
+#		my $je_nova_tlac = 0;
+		print "      <hlasovanie>\n";
+		print "        <datum>$rec->{datum}</datum>\n";
+		print "        <cas>$rec->{cas}</cas>\n";
+		print "        <cislo_parlamentnej_tlace>$rec->{parlamentna_tlac}->{cislo}</cislo_parlamentnej_tlace>\n";
+		print "        <predkladatelia>$rec->{meno}</predkladatelia>\n";
+		print "        <nazov>$rec->{nazov}</nazov>\n";
+		print "        <vysledok>".($rec->{hlasovanie_podla_klubov_url} eq "" ? "tajné hlasovanie" : $rec->{hlasovanie_vysledok})."</vysledok>\n";
+		print "        <hlasy>\n";
+		print "          <za>$rec->{hlasovanie_za}</za>\n";
+		print "          <proti>$rec->{hlasovanie_proti}</proti>\n";
+		print "          <zdrzalo_sa>$rec->{hlasovanie_zdrzalo_sa}</zdrzalo_sa>\n";
+		print "        </hlasy>\n";
+		print "      </hlasovanie>\n";
+	}
+
+	print "    </hlasovania>\n";
+	print "  </schodza>\n";
+	print "</schodze>\n";
 
 	close(STDOUT);
 }
@@ -308,7 +370,7 @@ sub parlamentne_tlace_to_recs() {
 	my $recs = shift;
 
 	foreach my $rec (@$recs) {
-		print Dumper($rec);
+#		print Dumper($rec);
 
 		if ($rec->{parlamentna_tlac}->{cislo} eq "") { next; }
 		if (defined $rec->{parlamentna_tlac}->{dokumenty}) { next; }
