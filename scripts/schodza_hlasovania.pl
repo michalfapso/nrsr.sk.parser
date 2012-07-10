@@ -38,8 +38,8 @@ my $HLASOVANIA_URL_FILENAME = $HLASOVANIA_DIR."_url.txt";
 #--------------------------------------------------
 uloz_zoznam_url_parlamentnych_tlaci(\@recs, "$OUT_DIR/$PARLAMENTNE_TLACE_URL_FILENAME");
 uloz_zoznam_url_hlasovani(\@recs, "$OUT_DIR/$HLASOVANIA_URL_FILENAME");
-system("./stiahni_parlamentne_tlace.sh '$OUT_DIR/$PARLAMENTNE_TLACE_URL_FILENAME' '$OUT_DIR/$PARLAMENTNE_TLACE_DIR'");
-system("./stiahni_hlasovania.sh '$OUT_DIR/$HLASOVANIA_URL_FILENAME' '$OUT_DIR/$HLASOVANIA_DIR'");
+#system("./stiahni_parlamentne_tlace.sh '$OUT_DIR/$PARLAMENTNE_TLACE_URL_FILENAME' '$OUT_DIR/$PARLAMENTNE_TLACE_DIR'");
+#system("./stiahni_hlasovania.sh '$OUT_DIR/$HLASOVANIA_URL_FILENAME' '$OUT_DIR/$HLASOVANIA_DIR'");
 
 hlasovania_to_recs(\@recs);
 parlamentne_tlace_to_recs(\@recs);
@@ -407,7 +407,7 @@ sub parse_nazov_hlasovania() {
 	my $str = shift;
 	my $rec_out = shift; # reference to hash
 
-	if ((my $meno) = $str =~ /^Návrh poslanc.{1,2} Národnej rady Slovenskej republiky (.+) na vydanie zákona/) {
+	if ((my $meno) = $str =~ /^Návrh poslanc.{1,2} Národnej rady Slovenskej republiky (.+) na vydanie/) {
 #		print "meno: $meno\n";
 		$rec_out->{meno} = $meno;
 	}
