@@ -16,7 +16,7 @@ $Data::Dumper::Maxdepth = 3;
 my $CISLO_SCHODZE = $ARGV[0];
 my $OUT_DIR = $ARGV[1];
 
-my $URL = "http://www.nrsr.sk/web/Default.aspx?sid=schodze%2fhlasovanie%2fvyhladavanie_vysledok&ZakZborID=13&CisObdobia=6&CisSchodze=$CISLO_SCHODZE&ShowCisloSchodze=False";
+my $URL = "http://www.nrsr.sk/web/Default.aspx?sid=schodze%2fhlasovanie%2fvyhladavanie_vysledok&ZakZborID=13&CisObdobia=6".($CISLO_SCHODZE eq "VSETKY" ? "" : "&CisSchodze=$CISLO_SCHODZE")."&ShowCisloSchodze=False";
 #my $URL = "file:///home/miso/projects/nrsr_web_parser/input.html";
 #$URL = "http://nalus.usoud.cz/Search/Search.aspx";
 
@@ -28,9 +28,11 @@ my @recs = ();
 rows2recs(\@rows, \@recs);
 
 mkdir "$OUT_DIR/schodza_$CISLO_SCHODZE";
-my $PARLAMENTNE_TLACE_DIR = "schodza_$CISLO_SCHODZE/parlamentne_tlace";
+#my $PARLAMENTNE_TLACE_DIR = "schodza_$CISLO_SCHODZE/parlamentne_tlace";
+my $PARLAMENTNE_TLACE_DIR = "parlamentne_tlace";
 my $PARLAMENTNE_TLACE_URL_FILENAME = $PARLAMENTNE_TLACE_DIR."_url.txt";
-my $HLASOVANIA_DIR = "schodza_$CISLO_SCHODZE/hlasovania";
+#my $HLASOVANIA_DIR = "schodza_$CISLO_SCHODZE/hlasovania";
+my $HLASOVANIA_DIR = "hlasovania";
 my $HLASOVANIA_URL_FILENAME = $HLASOVANIA_DIR."_url.txt";
 
 #--------------------------------------------------
@@ -38,8 +40,8 @@ my $HLASOVANIA_URL_FILENAME = $HLASOVANIA_DIR."_url.txt";
 #--------------------------------------------------
 uloz_zoznam_url_parlamentnych_tlaci(\@recs, "$OUT_DIR/$PARLAMENTNE_TLACE_URL_FILENAME");
 uloz_zoznam_url_hlasovani(\@recs, "$OUT_DIR/$HLASOVANIA_URL_FILENAME");
-#system("./stiahni_parlamentne_tlace.sh '$OUT_DIR/$PARLAMENTNE_TLACE_URL_FILENAME' '$OUT_DIR/$PARLAMENTNE_TLACE_DIR'");
-#system("./stiahni_hlasovania.sh '$OUT_DIR/$HLASOVANIA_URL_FILENAME' '$OUT_DIR/$HLASOVANIA_DIR'");
+system("./stiahni_parlamentne_tlace.sh '$OUT_DIR/$PARLAMENTNE_TLACE_URL_FILENAME' '$OUT_DIR/$PARLAMENTNE_TLACE_DIR'");
+system("./stiahni_hlasovania.sh '$OUT_DIR/$HLASOVANIA_URL_FILENAME' '$OUT_DIR/$HLASOVANIA_DIR'");
 
 hlasovania_to_recs(\@recs);
 parlamentne_tlace_to_recs(\@recs);
