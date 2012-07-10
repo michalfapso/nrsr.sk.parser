@@ -36,4 +36,6 @@ Priklad výstupu si môžete pozrieť tu:
 TODO
 ====
 
-* http://www.rokovania.sk/Rokovanie.aspx
+* spracovať textové prepisy vystúpení poslancov: http://www.nrsr.sk/web/Default.aspx?sid=schodze%2frozprava
+* spracovať dáta z rokovaní vlády: http://www.rokovania.sk/Rokovanie.aspx
+
