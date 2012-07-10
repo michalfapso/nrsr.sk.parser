@@ -139,7 +139,7 @@ sub recs_to_html()
 				}
 			}
 			print "  </td>\n";
-			print "  <td>".zvyrazni_nazov_zakona($rec->{nazov})."</td>\n";
+			print "  <td>".zvyrazni_dolezite_v_popise_hlasovania($rec->{nazov})."</td>\n";
 		} else {
 			print "  <td></td>\n";
 			print "  <td></td>\n";
@@ -236,18 +236,22 @@ sub recs_to_xml()
 	close(STDOUT);
 }
 
+sub zvyrazni_dolezite_v_popise_hlasovania() {
+	my $str = shift;
+	$str = zvyrazni_nazov_zakona($str);
+	$str =~ s/^(Návrh|Vládny návrh)(.*)( na voľbu| na odvolanie| na odvolanie a voľbu| na uznesenie| na vymenovanie poslancov| na vyslovenie súhlasu| na vydanie zákona| na vydanie ústavného zákona)([ ,.])/<span class="nazov_highlight">\1<\/span>\2<span class="nazov_highlight">\3<\/span>\4/g;
+	$str =~ s/^(Návrh|Vládny návrh)( zákona)(.*)( o|, ktorým sa mení)([ ,.])/<span class="nazov_highlight">\1\2<\/span>\3\4/g;
+	$str =~ s/(^Správa)(.*)( o činnosti| o výsledku| o výsledkoch| o stave)([ ,.])/<span class="nazov_highlight">\1<\/span>\2<span class="nazov_highlight">\3<\/span>\4/g;
+	return $str;
+}
+
 sub zvyrazni_nazov_zakona() {
 	my $str = shift;
-
-#	print STDERR "\nzvyrazni_nazov_zakona\n";
 	my $res = "";
-#	while(($str =~ s/(zákon č. [\d\/]+ )(.*?)( v znení| a o doplnení)/\1<span class="nazov_highlight">\2<\/span>\3/g) > 0) {}
 	while(1) {
-#		print STDERR "str:$str\n";
 		if (!($str =~ s/(zákon[a]? č. [\d\/]+ )([^<]*?)( v znení| a o zmene| a o doplnení)/\1<span class="nazov_highlight">\2<\/span>\3/g)) {
 			last;
 		}
-#		print STDERR "i1:$i\n";
 		(my $append, $str) = $str =~ /^(.+<\/span>)(.*)$/;
 		$res = $res.$append;
 	}
