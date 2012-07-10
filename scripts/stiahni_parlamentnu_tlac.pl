@@ -18,7 +18,7 @@ my $DOWNLOAD_DIR = $ARGV[1];
 if ($CISLO_TLACE eq "") { die("ERROR: Invalid URL '$URL'!"); }
 
 if (-e "$DOWNLOAD_DIR/$CISLO_TLACE/list.txt") {
-	print STDERR "seems to be already downloaded ...skipping\n";
+	print STDERR "parlamentna tlac $CISLO_TLACE je uz stiahnuta ...nestahujem\n";
 	exit;
 }
 

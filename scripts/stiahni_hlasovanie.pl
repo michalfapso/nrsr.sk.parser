@@ -19,7 +19,7 @@ my $DOWNLOAD_DIR = $ARGV[1];
 if ($ID_HLASOVANIA eq "") { die("ERROR: Invalid URL '$URL'!"); }
 
 if (-e "$DOWNLOAD_DIR/$ID_HLASOVANIA.txt") {
-	print STDERR "seems to be already downloaded ...skipping\n";
+	print STDERR "hlasovanie #$ID_HLASOVANIA je uz stiahnute ...nestahujem\n";
 	exit;
 }
 
