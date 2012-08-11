@@ -131,7 +131,7 @@ sub recs_to_html()
 		print "<tr class='$tr_class'>\n";
 		print "  <td>$rec->{datum}<br/>$rec->{cas}</td>\n";
 		if ($je_nova_tlac) {
-			print "  <td><a href='$rec->{parlamentna_tlac_url}'>$rec->{parlamentna_tlac}->{cislo}</a></td>\n";
+			print "  <td><a href='$rec->{parlamentna_tlac}->{url}'>$rec->{parlamentna_tlac}->{cislo}</a></td>\n";
 			print "  <td>$rec->{meno}</td>\n";
 			print "  <td>\n";
 			if (defined $rec->{parlamentna_tlac}->{dokumenty}) {
